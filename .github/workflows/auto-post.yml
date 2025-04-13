@@ -1,6 +1,8 @@
-name: Debug Blog Post Generator
+name: Auto Blog Post Generator
 
 on:
+  schedule:
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 jobs:
