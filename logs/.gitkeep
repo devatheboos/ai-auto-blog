@@ -1,0 +1,70 @@
+name: Auto Blog Post Generator
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  generate-blog:
+    runs-on: ubuntu-latest
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GIT_NAME: ${{ secrets.GIT_NAME }}
+      REPO_PUSH_URL: ${{ secrets.REPO_PUSH_URL }}
+      ACTIONS_STEP_DEBUG: true
+      GIT_TRACE: 1
+      GIT_CURL_VERBOSE: 1
+
+    steps:
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: 📥 Install Dependencies
+        run: npm install
+
+      - name: 🧠 Generate Blog & Save Logs
+        run: |
+          LOGFILE=logs/auto-post-$(date +'%Y%m%d-%H%M').log
+          mkdir -p logs
+
+          {
+            echo "==== 🤖 BLOG GENERATION START ===="
+            date
+            echo ""
+
+            echo "📥 Running fetchAndGenerate.mjs..."
+            node scripts/fetchAndGenerate.mjs
+
+            echo ""
+            echo "📁 Listing posts/"
+            ls -lh posts
+
+            echo ""
+            echo "📷 Listing public/images/"
+            ls -lh public/images
+
+            echo ""
+            echo "📝 Showing latest post content:"
+            latest_post=$(ls -t posts/*.md | head -n 1)
+            cat "$latest_post"
+
+            echo ""
+            echo "==== ✅ END OF LOG ===="
+          } | tee "$LOGFILE"
+
+      - name: 🚀 Commit & Push Blog + Log
+        run: |
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "$GIT_NAME"
+
+          git add posts/*.md public/images/*.png logs/*.log
+          git commit -m "🤖 New AI post and log: $(date)" || echo "No changes to commit"
+          git push "$REPO_PUSH_URL" HEAD:main
