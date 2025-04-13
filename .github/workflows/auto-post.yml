@@ -38,22 +38,26 @@ jobs:
 
       - name: Step 5 - Show Files Created
         run: |
-          echo "📂 posts/"
-          ls -lh posts || echo "⚠️ posts not found"
-          echo "🖼 images/"
-          ls -lh public/images || echo "⚠️ images not found"
+          echo "📂 content/posts/"
+          ls -lh content/posts || echo "⚠️ No posts found"
+          echo "🖼 content/images/"
+          ls -lh content/images || echo "⚠️ No images found"
 
       - name: Step 6 - Git Commit & Push
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
-          git add posts/*.md public/images/*.png logs/*.log 2>/dev/null || echo "⚠️ Nothing to add"
+
+          ls content/posts/*.md 2>/dev/null && git add content/posts/*.md || echo "⚠️ No markdown files"
+          ls content/images/*.png 2>/dev/null && git add content/images/*.png || echo "⚠️ No image files"
+          ls logs/*.log 2>/dev/null && git add logs/*.log || echo "⚠️ No log files"
+
           if git diff --cached --quiet; then
             echo "🟡 No changes to commit"
           else
-            git commit -m "🤖 New AI post $(date)"
+            git commit -m "🤖 New AI post: $(date)"
             git push "$REPO_PUSH_URL" HEAD:main || {
-              echo "❌ Push failed"
+              echo "❌ Git push failed"
               exit 1
             }
           fi
