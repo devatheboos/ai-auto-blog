@@ -1,20 +1,19 @@
 #!/bin/bash
 
-echo "📧 Setting Git user info"
+echo "📧 Configuring Git"
 git config --global user.email "$GIT_EMAIL"
 git config --global user.name "$GIT_NAME"
 
-echo "📁 Staging new posts and images"
+echo "📁 Adding new posts and images"
 git add posts/*.md public/images/*.png
 
-echo "✅ Checking for changes..."
+echo "🔍 Checking for staged changes..."
 if git diff --cached --quiet; then
-  echo "🟡 No changes to commit."
+  echo "🟡 No new changes to commit."
 else
   echo "📝 Committing changes..."
   git commit -m "🤖 Auto-post: $(date)"
 fi
 
-echo "🚀 Pushing to repo..."
-git remote -v
+echo "🚀 Pushing to remote..."
 git push "$REPO_PUSH_URL" HEAD:main
