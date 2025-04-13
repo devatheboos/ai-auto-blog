@@ -25,7 +25,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
           GIT_NAME: ${{ secrets.GIT_NAME }}
-          GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
+          GITHUB_REPO: ${{ secrets.REPO_PUSH_URL }}
         run: |
           node scripts/fetchAndGenerate.mjs
           bash scripts/pushToGit.sh
