@@ -1,13 +1,23 @@
-name: Auto Blog Post
+name: Auto Blog Post Generator
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # Every 30 minutes
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 jobs:
   generate-blog:
     runs-on: ubuntu-latest
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GIT_NAME: ${{ secrets.GIT_NAME }}
+      REPO_PUSH_URL: ${{ secrets.REPO_PUSH_URL }}
+      ACTIONS_STEP_DEBUG: true
+      GIT_TRACE: 1
+      GIT_CURL_VERBOSE: 1
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -17,15 +27,10 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm install
 
-      - name: Generate Blog & Push
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
-          GIT_NAME: ${{ secrets.GIT_NAME }}
-          REPO_PUSH_URL: ${{ secrets.REPO_PUSH_URL }}
+      - name: Generate & Push Blog Post
         run: |
           node scripts/fetchAndGenerate.mjs
           bash scripts/pushToGit.sh
