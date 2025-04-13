@@ -8,10 +8,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
-      GIT_NAME: ${{ secrets.GIT_NAME }}
-      REPO_PUSH_URL: ${{ secrets.REPO_PUSH_URL }}
+      OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
+      GIT_EMAIL: "${{ secrets.GIT_EMAIL }}"
+      GIT_NAME: "${{ secrets.GIT_NAME }}"
+      REPO_PUSH_URL: "${{ secrets.REPO_PUSH_URL }}"
 
     steps:
       - name: ✅ Step 1: Checkout Repo
