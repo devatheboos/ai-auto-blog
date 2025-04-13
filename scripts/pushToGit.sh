@@ -5,4 +5,4 @@ git config --global user.name "$GIT_NAME"
 
 git add posts/*.md public/images/*.png
 git commit -m "🤖 Auto-post: $(date)"
-git push "$GITHUB_REPO" HEAD:main
+git push "$REPO_PUSH_URL" HEAD:main
