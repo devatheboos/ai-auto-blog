@@ -1,6 +1,7 @@
 {
   "name": "nodejs",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,6 +11,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^22.13.11"
+    "@types/node": "^22.13.11",
+    "dotenv": "^16.5.0",
+    "fs-extra": "^11.3.0",
+    "gray-matter": "^4.0.3",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.93.0",
+    "rss-parser": "^3.13.0"
   }
 }
