@@ -1,9 +1,7 @@
-name: Auto Blog Post Generator
+name: Debug Blog Post Generator
 
 on:
-  schedule:
-    - cron: "*/30 * * * *" # Every 30 minutes
-  workflow_dispatch:       # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   generate-blog:
@@ -14,83 +12,51 @@ jobs:
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GIT_NAME: ${{ secrets.GIT_NAME }}
       REPO_PUSH_URL: ${{ secrets.REPO_PUSH_URL }}
-      ACTIONS_STEP_DEBUG: true
-      GIT_TRACE: 1
-      GIT_CURL_VERBOSE: 1
 
     steps:
-      - name: 📦 Checkout Repository
+      - name: ✅ Step 1: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: ⚙️ Setup Node.js
+      - name: ✅ Step 2: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: 📥 Install Dependencies
+      - name: ✅ Step 3: Install Dependencies
+        run: npm install
+
+      - name: ✅ Step 4: Run fetchAndGenerate.mjs
         run: |
-          echo "Installing npm dependencies..."
-          npm install
+          echo "Running blog post generation..."
+          node scripts/fetchAndGenerate.mjs || {
+            echo "❌ Blog generation failed"
+            exit 128
+          }
 
-      - name: 🧠 Generate Blog & Save Logs
+      - name: ✅ Step 5: Show Generated Files
         run: |
-          LOGFILE=logs/auto-post-$(date +'%Y%m%d-%H%M').log
-          mkdir -p logs
+          echo "📁 Posts:"
+          ls -lh posts || echo "⚠️ posts folder not found"
+          echo "🖼️ Images:"
+          ls -lh public/images || echo "⚠️ image folder not found"
 
-          {
-            echo "==== 🤖 BLOG GENERATION START ===="
-            date
-            echo ""
-
-            echo "📥 Running fetchAndGenerate.mjs..."
-            node scripts/fetchAndGenerate.mjs
-
-            echo ""
-            echo "📁 Listing posts/"
-            ls -lh posts || echo "⚠️ No posts found"
-
-            echo ""
-            echo "📷 Listing public/images/"
-            ls -lh public/images || echo "⚠️ No images found"
-
-            echo ""
-            echo "📝 Showing latest post content:"
-            latest_post=$(ls -t posts/*.md | head -n 1 || echo "")
-            if [[ -f "$latest_post" ]]; then
-              cat "$latest_post"
-            else
-              echo "⚠️ No .md post available"
-            fi
-
-            echo ""
-            echo "==== ✅ END OF LOG ===="
-          } | tee "$LOGFILE"
-
-      - name: 🚀 Commit & Push Blog + Log
+      - name: ✅ Step 6: Git Commit and Push
         run: |
-          echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
 
-          echo "📁 Git status before commit:"
-          git status
-
-          echo "➕ Staging files..."
-          git add posts/*.md public/images/*.png logs/*.log 2>/dev/null || echo "⚠️ No files matched"
-
-          echo "📝 Attempting to commit..."
+          git add posts/*.md public/images/*.png logs/*.log 2>/dev/null || echo "⚠️ Nothing to stage"
+          
           if git diff --cached --quiet; then
             echo "🟡 No changes to commit"
           else
-            git commit -m "🤖 New AI post and log: $(date)"
+            git commit -m "🤖 AI auto-post"
           fi
 
-          echo "🔗 Git remotes:"
+          git remote add origin "$REPO_PUSH_URL" || echo "🔁 Remote already set"
           git remote -v
 
-          echo "🚀 Pushing to GitHub..."
           git push "$REPO_PUSH_URL" HEAD:main || {
-            echo "❌ Git push failed with exit code $?"
-            echo "❗ Possible cause: invalid token, branch mismatch, or protected branch"
+            echo "❌ Git push failed"
             exit 128
           }
