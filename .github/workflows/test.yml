@@ -1,11 +1,62 @@
-name: Test GitHub Actions
+name: Auto Blog Post Generator
 
 on:
   workflow_dispatch:
 
 jobs:
-  test-run:
+  generate-blog:
     runs-on: ubuntu-latest
+
+    env:
+      OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
+      GIT_EMAIL: "${{ secrets.GIT_EMAIL }}"
+      GIT_NAME: "${{ secrets.GIT_NAME }}"
+      REPO_PUSH_URL: "${{ secrets.REPO_PUSH_URL }}"
+
     steps:
-      - name: Test Hello
-        run: echo "✅ Hello from GitHub Actions"
+      - name: ✅ Step 1: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: ✅ Step 2: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: ✅ Step 3: Install Dependencies
+        run: npm install
+
+      - name: ✅ Step 4: Run fetchAndGenerate.mjs
+        run: |
+          echo "Running blog post generation..."
+          node scripts/fetchAndGenerate.mjs || {
+            echo "❌ Blog generation failed"
+            exit 128
+          }
+
+      - name: ✅ Step 5: Show Generated Files
+        run: |
+          echo "📁 Posts:"
+          ls -lh posts || echo "⚠️ posts folder not found"
+          echo "🖼️ Images:"
+          ls -lh public/images || echo "⚠️ image folder not found"
+
+      - name: ✅ Step 6: Git Commit and Push
+        run: |
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "$GIT_NAME"
+
+          git add posts/*.md public/images/*.png logs/*.log 2>/dev/null || echo "⚠️ Nothing to stage"
+          
+          if git diff --cached --quiet; then
+            echo "🟡 No changes to commit"
+          else
+            git commit -m "🤖 AI auto-post"
+          fi
+
+          git remote add origin "$REPO_PUSH_URL" || echo "🔁 Remote already set"
+          git remote -v
+
+          git push "$REPO_PUSH_URL" HEAD:main || {
+            echo "❌ Git push failed"
+            exit 128
+          }
