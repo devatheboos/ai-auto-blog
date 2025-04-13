@@ -1,4 +1,4 @@
-name: Ai Auto Blog Post Generator
+name: Auto Blog Post Generator
 
 on:
   workflow_dispatch:
@@ -16,33 +16,35 @@ jobs:
       REPO_PUSH_URL: ${{ secrets.REPO_PUSH_URL }}
 
     steps:
-      - name: ✅ Checkout Repo
+      - name: ✅ Step 1: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: ✅ Setup Node.js
+      - name: ✅ Step 2: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: ✅ Install Dependencies
-        run: npm install
-
-      - name: ✅ Generate Blog Post
+      - name: ✅ Step 3: Install Dependencies
         run: |
-          echo "Running generator..."
+          echo "Installing dependencies..."
+          npm install
+
+      - name: ✅ Step 4: Run Generator Script
+        run: |
+          echo "Generating blog..."
           node scripts/fetchAndGenerate.mjs || {
-            echo "❌ Blog generation failed"
-            exit 128
+            echo "❌ Generator failed"
+            exit 1
           }
 
-      - name: ✅ Show Generated Files
+      - name: ✅ Step 5: List Output Files
         run: |
-          echo "📁 posts:"
-          ls -lh posts || echo "⚠️ posts folder not found"
-          echo "📷 images:"
-          ls -lh public/images || echo "⚠️ images folder not found"
+          echo "📁 posts/"
+          ls -lh posts || echo "⚠️ No posts found"
+          echo "🖼 images/"
+          ls -lh public/images || echo "⚠️ No images found"
 
-      - name: ✅ Git Commit & Push
+      - name: ✅ Step 6: Git Commit & Push
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
@@ -50,9 +52,9 @@ jobs:
           if git diff --cached --quiet; then
             echo "🟡 No changes to commit"
           else
-            git commit -m "🤖 AI auto-post"
+            git commit -m "🤖 Auto blog post: $(date)"
             git push "$REPO_PUSH_URL" HEAD:main || {
-              echo "❌ Git push failed"
-              exit 128
+              echo "❌ Push failed"
+              exit 1
             }
           fi
