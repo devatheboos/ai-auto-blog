@@ -21,7 +21,7 @@ const openai = new OpenAI({
 async function fetchRSSAndGenerate() {
   try {
     // Step 1: Fetch RSS Feed
-    const feed = await parser.parseURL("https://www.theverge.com/rss/index.xml");
+    const feed = await parser.parseURL("https://static.cricinfo.com/rss/livescores.xml");
     const firstItem = feed.items[0];
 
     const title = firstItem.title;
