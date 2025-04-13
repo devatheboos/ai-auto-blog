@@ -1,4 +1,4 @@
-name: Auto Blog Post Generator
+name: Ai Auto Blog Post Generator
 
 on:
   workflow_dispatch:
