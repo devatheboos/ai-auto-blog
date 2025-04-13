@@ -1,4 +1,4 @@
-name: 🚀 Auto Blog Post Generator
+name: ✅ Auto Blog Post Generator
 
 on:
   workflow_dispatch:
@@ -6,19 +6,54 @@ on:
     - cron: "*/30 * * * *"
 
 jobs:
-  generate-blog:
-    name: Generate Blog
+  show-steps:
+    name: Generate AI Blog
     runs-on: ubuntu-latest
 
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
+      GIT_NAME: ${{ secrets.GIT_NAME }}
+      REPO_PUSH_URL: ${{ secrets.REPO_PUSH_URL }}
+
     steps:
-      - name: 🛠 Step 1: Setup
-        run: echo "🔧 Setting up blog post generation..."
+      - name: Step 1 - Checkout Repo
+        uses: actions/checkout@v3
 
-      - name: ✍️ Step 2: Generate Content
-        run: echo "📝 Generating blog post..."
+      - name: Step 2 - Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-      - name: 💾 Step 3: Save Files
-        run: echo "💾 Saving Markdown + image..."
+      - name: Step 3 - Install Dependencies
+        run: npm install
 
-      - name: 🚀 Step 4: Push to GitHub
-        run: echo "🚀 Pushing to ai-auto-blog-frontend repo..."
+      - name: Step 4 - Run Blog Generator
+        run: |
+          echo "Running fetchAndGenerate.mjs..."
+          node scripts/fetchAndGenerate.mjs || {
+            echo "❌ Generation failed"
+            exit 1
+          }
+
+      - name: Step 5 - Show Files Created
+        run: |
+          echo "📂 posts/"
+          ls -lh posts || echo "⚠️ posts not found"
+          echo "🖼 images/"
+          ls -lh public/images || echo "⚠️ images not found"
+
+      - name: Step 6 - Git Commit & Push
+        run: |
+          git config --global user.email "$GIT_EMAIL"
+          git config --global user.name "$GIT_NAME"
+          git add posts/*.md public/images/*.png logs/*.log 2>/dev/null || echo "⚠️ Nothing to add"
+          if git diff --cached --quiet; then
+            echo "🟡 No changes to commit"
+          else
+            git commit -m "🤖 New AI post $(date)"
+            git push "$REPO_PUSH_URL" HEAD:main || {
+              echo "❌ Push failed"
+              exit 1
+            }
+          fi
