@@ -2,8 +2,8 @@ name: Auto Blog Post Generator
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
-  workflow_dispatch:
+    - cron: "*/30 * * * *" # Every 30 minutes
+  workflow_dispatch:       # Allow manual trigger
 
 jobs:
   generate-blog:
@@ -28,7 +28,9 @@ jobs:
           node-version: 18
 
       - name: 📥 Install Dependencies
-        run: npm install
+        run: |
+          echo "Installing npm dependencies..."
+          npm install
 
       - name: 🧠 Generate Blog & Save Logs
         run: |
@@ -45,16 +47,20 @@ jobs:
 
             echo ""
             echo "📁 Listing posts/"
-            ls -lh posts
+            ls -lh posts || echo "⚠️ No posts found"
 
             echo ""
             echo "📷 Listing public/images/"
-            ls -lh public/images
+            ls -lh public/images || echo "⚠️ No images found"
 
             echo ""
             echo "📝 Showing latest post content:"
-            latest_post=$(ls -t posts/*.md | head -n 1)
-            cat "$latest_post"
+            latest_post=$(ls -t posts/*.md | head -n 1 || echo "")
+            if [[ -f "$latest_post" ]]; then
+              cat "$latest_post"
+            else
+              echo "⚠️ No .md post available"
+            fi
 
             echo ""
             echo "==== ✅ END OF LOG ===="
@@ -62,9 +68,29 @@ jobs:
 
       - name: 🚀 Commit & Push Blog + Log
         run: |
+          echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
 
-          git add posts/*.md public/images/*.png logs/*.log
-          git commit -m "🤖 New AI post and log: $(date)" || echo "No changes to commit"
-          git push "$REPO_PUSH_URL" HEAD:main
+          echo "📁 Git status before commit:"
+          git status
+
+          echo "➕ Staging files..."
+          git add posts/*.md public/images/*.png logs/*.log 2>/dev/null || echo "⚠️ No files matched"
+
+          echo "📝 Attempting to commit..."
+          if git diff --cached --quiet; then
+            echo "🟡 No changes to commit"
+          else
+            git commit -m "🤖 New AI post and log: $(date)"
+          fi
+
+          echo "🔗 Git remotes:"
+          git remote -v
+
+          echo "🚀 Pushing to GitHub..."
+          git push "$REPO_PUSH_URL" HEAD:main || {
+            echo "❌ Git push failed with exit code $?"
+            echo "❗ Possible cause: invalid token, branch mismatch, or protected branch"
+            exit 128
+          }
