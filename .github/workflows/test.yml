@@ -1,9 +1,16 @@
-name: Test Workflow
+name: ✅ Confirm Steps Visible
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
 
 jobs:
-  test:
+  show-steps:
+    name: Debug Step View
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "✅ GitHub Actions is working!"
+      - name: Step 1 - Say Hello
+        run: echo "👋 Hello from GitHub Actions"
+
+      - name: Step 2 - Say Goodbye
+        run: echo "👋 Goodbye!"
