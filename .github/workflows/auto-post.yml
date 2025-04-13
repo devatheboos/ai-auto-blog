@@ -2,8 +2,8 @@ name: Auto Blog Post Generator
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
-  workflow_dispatch:
+    - cron: "*/30 * * * *"  # Every 30 minutes
+  workflow_dispatch:         # Manual trigger available
 
 jobs:
   generate-blog:
@@ -19,18 +19,36 @@ jobs:
       GIT_CURL_VERBOSE: 1
 
     steps:
-      - name: Checkout Repo
+      - name: 📦 Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install Dependencies
+      - name: 📥 Install Dependencies
         run: npm install
 
-      - name: Generate & Push Blog Post
+      - name: 🧠 Generate AI Blog Post
         run: |
+          echo "🔧 Running blog generator..."
           node scripts/fetchAndGenerate.mjs
+
+      - name: 🔍 Log Files Created
+        run: |
+          echo "📝 Files in /posts"
+          ls -lh posts
+          echo ""
+          echo "📷 Files in /public/images"
+          ls -lh public/images
+          echo ""
+          echo "🔍 Showing content of latest post:"
+          latest_post=$(ls -t posts/*.md | head -n 1)
+          echo "--------------------------------------"
+          cat $latest_post
+          echo "--------------------------------------"
+
+      - name: 🚀 Commit & Push to GitHub
+        run: |
           bash scripts/pushToGit.sh
