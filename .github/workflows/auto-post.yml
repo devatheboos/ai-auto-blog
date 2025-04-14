@@ -69,13 +69,13 @@ jobs:
           echo "🧪 Creating .netrc file to force token use..."
           cat <<EOF > ~/.netrc
 machine github.com
-login $GH_USER
-password $GH_TOKEN
+login ${GH_USER}
+password ${GH_TOKEN}
 EOF
 
           echo "🧪 Setting remote URL..."
           git remote remove origin || true
-          git remote add origin https://github.com/$GH_USER/$GH_REPO_NAME.git
+          git remote add origin https://github.com/${GH_USER}/${GH_REPO_NAME}.git
 
           echo "🚀 Pushing to GitHub using netrc token auth..."
           GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push origin HEAD:main || {
