@@ -32,34 +32,39 @@ jobs:
 
       - name: Step 4 - Generate Blog Post
         run: |
-          echo "Running blog post generator..."
+          echo "🧠 Running blog post generator..."
           node scripts/fetchAndGenerate.mjs
 
       - name: Step 5 - Show New Files
         run: |
-          echo "📝 Posts:"
-          ls -lh content/posts || echo "No posts"
-          echo "🖼 Images:"
-          ls -lh content/images || echo "No images"
+          echo "📝 Markdown files:"
+          ls -lh content/posts || echo "⚠️ No posts"
+          echo "🖼️ Images:"
+          ls -lh content/images || echo "⚠️ No images"
 
-      - name: Step 6 - Git Commit & Push
+      - name: Step 6 - Git Commit & Push with PAT
         run: |
           echo "🔐 Setting up Git..."
-
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
 
-          git add content/posts/*.md 2>/dev/null || echo "No markdown files"
-          git add content/images/*.png 2>/dev/null || echo "No images"
-          git add logs/*.log 2>/dev/null || echo "No logs"
+          git add content/posts/*.md 2>/dev/null || echo "⚠️ No markdown files"
+          git add content/images/*.png 2>/dev/null || echo "⚠️ No image files"
+          git add logs/*.log 2>/dev/null || echo "⚠️ No logs"
 
           if git diff --cached --quiet; then
-            echo "🟡 No changes to commit"
+            echo "🟡 Nothing to commit"
           else
             git commit -m "🤖 New AI post: $(date)"
 
             REPO_URL="https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
+            echo "🔍 Repo URL (masked): ${REPO_URL/github.com/****.com}"
+
             git remote set-url origin "$REPO_URL"
             git remote -v
-            git push origin HEAD:main
+
+            git push origin HEAD:main || {
+              echo "❌ Git push failed"
+              exit 1
+            }
           fi
