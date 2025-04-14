@@ -47,7 +47,7 @@ jobs:
 
       - name: 🐛 Show Repo URL
         run: |
-          echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
+          echo "REPO_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GH_USER}/${GH_REPO_NAME}.git""
 
 
       - name: Step 6 - Git Commit & Push
