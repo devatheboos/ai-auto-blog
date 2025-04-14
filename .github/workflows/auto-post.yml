@@ -50,9 +50,7 @@ jobs:
           echo "Final Repo URL:"
           echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
 
-      - name: ✅ Step 7 - Git Commit & Push (Correct PAT usage)
-        env:
-          GH_PUSH_URL: https://devatheboos:${{ secrets.GH_TOKEN }}@github.com/devatheboos/ai-auto-blog-frontend.git
+      - name: ✅ Step 7 - Git Commit & Push (Final Fix)
         run: |
           echo "🔐 Setting up Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -68,10 +66,14 @@ jobs:
             git commit -m "🤖 New AI post: $(date)"
           fi
 
-          git remote remove origin || true
-          git remote add origin "$GH_PUSH_URL"
+          echo "🧪 Saving token-based push URL..."
+          echo "https://${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git" > push-url.txt
+          cat push-url.txt | sed 's/github.com/****.com/'
 
-          echo "🚀 Pushing to GitHub via PAT URL..."
+          git remote set-url origin "$(cat push-url.txt)"
+          git remote -v
+
+          echo "🚀 Pushing to GitHub via token-only URL..."
           git push origin HEAD:main || {
             echo "❌ Git push failed"
             exit 1
