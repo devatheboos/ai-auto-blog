@@ -19,38 +19,38 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
-      - name: Step 1 - Checkout Repo
+      - name: ✅ Step 1 - Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Step 2 - Setup Node.js
+      - name: ✅ Step 2 - Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Step 3 - Install Dependencies
+      - name: ✅ Step 3 - Install Dependencies
         run: npm install
 
-      - name: Step 4 - Generate Blog Post
+      - name: ✅ Step 4 - Generate Blog Post
         run: |
           echo "🧠 Running blog post generator..."
           node scripts/fetchAndGenerate.mjs
 
-      - name: Step 5 - Show New Files
+      - name: ✅ Step 5 - Show New Files
         run: |
           echo "📝 Markdown files:"
           ls -lh content/posts || echo "⚠️ No posts"
           echo "🖼️ Images:"
           ls -lh content/images || echo "⚠️ No images"
 
-      - name: 🕵️ Debug: Reveal constructed repo URL
+      - name: 🕵️ Step 6 - Debug Repo URL
         run: |
-          echo "GH_USER: '${GH_USER}'"
-          echo "GH_REPO_NAME: '${GH_REPO_NAME}'"
+          echo "GH_USER: ${GH_USER}"
+          echo "GH_REPO_NAME: ${GH_REPO_NAME}"
           echo "GH_TOKEN length: ${#GH_TOKEN}"
           echo "Final Repo URL:"
           echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
 
-      - name: Step 6 - Git Commit & Push with PAT
+      - name: ✅ Step 7 - Git Commit & Push with PAT
         run: |
           echo "🔐 Setting up Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -64,13 +64,10 @@ jobs:
             echo "🟡 Nothing to commit"
           else
             git commit -m "🤖 New AI post: $(date)"
-
             REPO_URL="https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
-            echo "🔍 Repo URL (masked): ${REPO_URL/github.com/****.com}"
-
+            echo "🔍 Pushing to: ${REPO_URL/github.com/****.com}"
             git remote set-url origin "$REPO_URL"
             git remote -v
-
             git push origin HEAD:main || {
               echo "❌ Git push failed"
               exit 1
