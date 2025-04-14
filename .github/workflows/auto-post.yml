@@ -45,6 +45,11 @@ jobs:
           echo "🖼 content/images/"
           ls -lh content/images || echo "⚠️ No images found"
 
+      - name: 🐛 Show Repo URL
+        run: |
+          echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
+
+
       - name: Step 6 - Git Commit & Push
         run: |
           echo "🔐 Setting up Git and pushing changes..."
