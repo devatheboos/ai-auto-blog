@@ -6,7 +6,7 @@ on:
     - cron: "*/30 * * * *"
 
 jobs:
-  show-steps:
+  generate-blog:
     name: Generate AI Blog
     runs-on: ubuntu-latest
 
@@ -14,7 +14,9 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GIT_NAME: ${{ secrets.GIT_NAME }}
-      REPO_PUSH_URL: ${{ secrets.REPO_PUSH_URL }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GH_USER: ${{ secrets.GH_USER }}
+      GH_REPO_NAME: ${{ secrets.GH_REPO_NAME }}
 
     steps:
       - name: Step 1 - Checkout Repo
@@ -32,7 +34,7 @@ jobs:
         run: |
           echo "Running fetchAndGenerate.mjs..."
           node scripts/fetchAndGenerate.mjs || {
-            echo "❌ Generation failed"
+            echo "❌ Blog generation failed"
             exit 1
           }
 
@@ -58,8 +60,11 @@ jobs:
             echo "🟡 No changes to commit"
           else
             git commit -m "🤖 New AI post: $(date)"
-            git remote set-url origin "$REPO_PUSH_URL"
+
+            REPO_URL="https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
+            git remote set-url origin "$REPO_URL"
             git remote -v
+
             git push origin HEAD:main || {
               echo "❌ Git push failed"
               exit 1
