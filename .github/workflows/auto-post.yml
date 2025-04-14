@@ -50,7 +50,9 @@ jobs:
           echo "Final Repo URL:"
           echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
 
-      - name: ✅ Step 7 - Git Commit & Push (Safe Credentials)
+      - name: ✅ Step 7 - Git Commit & Push (Correct PAT usage)
+        env:
+          GH_PUSH_URL: https://devatheboos:${{ secrets.GH_TOKEN }}@github.com/devatheboos/ai-auto-blog-frontend.git
         run: |
           echo "🔐 Setting up Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -66,14 +68,10 @@ jobs:
             git commit -m "🤖 New AI post: $(date)"
           fi
 
-          echo "🧪 Setting up git credentials..."
-          echo "https://${GH_USER}:${GH_TOKEN}@github.com" > ~/.git-credentials
-          git config --global credential.helper "store"
+          git remote remove origin || true
+          git remote add origin "$GH_PUSH_URL"
 
-          git remote set-url origin "https://github.com/${GH_USER}/${GH_REPO_NAME}.git"
-          git remote -v
-
-          echo "🚀 Pushing to GitHub..."
+          echo "🚀 Pushing to GitHub via PAT URL..."
           git push origin HEAD:main || {
             echo "❌ Git push failed"
             exit 1
