@@ -42,6 +42,14 @@ jobs:
           echo "🖼️ Images:"
           ls -lh content/images || echo "⚠️ No images"
 
+      - name: 🕵️ Debug: Reveal constructed repo URL
+        run: |
+          echo "GH_USER: '${GH_USER}'"
+          echo "GH_REPO_NAME: '${GH_REPO_NAME}'"
+          echo "GH_TOKEN length: ${#GH_TOKEN}"
+          echo "Final Repo URL:"
+          echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
+
       - name: Step 6 - Git Commit & Push with PAT
         run: |
           echo "🔐 Setting up Git..."
