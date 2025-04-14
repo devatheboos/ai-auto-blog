@@ -43,8 +43,10 @@ jobs:
           echo "🖼 content/images/"
           ls -lh content/images || echo "⚠️ No images found"
 
-            - name: Step 6 - Git Commit & Push
+      - name: Step 6 - Git Commit & Push
         run: |
+          echo "🔐 Using REPO_PUSH_URL: $REPO_PUSH_URL"
+
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
 
