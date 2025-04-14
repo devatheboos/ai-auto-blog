@@ -50,7 +50,7 @@ jobs:
           echo "Final Repo URL:"
           echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
 
-      - name: ✅ Step 7 - Git Commit & Push
+      - name: ✅ Step 7 - Git Commit & Push (Safe Credentials)
         run: |
           echo "🔐 Setting up Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -66,18 +66,15 @@ jobs:
             git commit -m "🤖 New AI post: $(date)"
           fi
 
-          # Rebuild remote
-          git remote remove origin || true
+          echo "🧪 Setting up git credentials..."
+          echo "https://${GH_USER}:${GH_TOKEN}@github.com" > ~/.git-credentials
+          git config --global credential.helper "store"
 
-          REPO_URL="https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
-          echo "🔍 Full Repo URL: $REPO_URL" | sed 's/github.com/****.com/'
-
-          git remote add origin "$REPO_URL"
+          git remote set-url origin "https://github.com/${GH_USER}/${GH_REPO_NAME}.git"
           git remote -v
 
-          # Push
+          echo "🚀 Pushing to GitHub..."
           git push origin HEAD:main || {
             echo "❌ Git push failed"
             exit 1
           }
-
