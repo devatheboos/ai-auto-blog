@@ -50,7 +50,7 @@ jobs:
           echo "Final Repo URL:"
           echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
 
-      - name: ✅ Step 7 - Git Commit & Push with PAT
+      - name: ✅ Step 7 - Git Commit & Push
         run: |
           echo "🔐 Setting up Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -64,12 +64,20 @@ jobs:
             echo "🟡 Nothing to commit"
           else
             git commit -m "🤖 New AI post: $(date)"
-            REPO_URL="https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
-            echo "🔍 Pushing to: ${REPO_URL/github.com/****.com}"
-            git remote set-url origin "$REPO_URL"
-            git remote -v
-            git push origin HEAD:main || {
-              echo "❌ Git push failed"
-              exit 1
-            }
           fi
+
+          # Rebuild remote
+          git remote remove origin || true
+
+          REPO_URL="https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
+          echo "🔍 Full Repo URL: $REPO_URL" | sed 's/github.com/****.com/'
+
+          git remote add origin "$REPO_URL"
+          git remote -v
+
+          # Push
+          git push origin HEAD:main || {
+            echo "❌ Git push failed"
+            exit 1
+          }
+
