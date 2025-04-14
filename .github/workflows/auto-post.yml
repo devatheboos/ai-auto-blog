@@ -50,7 +50,7 @@ jobs:
           echo "Final Repo URL:"
           echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
 
-      - name: ✅ Step 7 - Git Commit & Push
+      - name: ✅ Step 7 - Git Commit & Push (manual auth fix)
         run: |
           echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -66,11 +66,19 @@ jobs:
             git commit -m "🤖 New AI post: $(date)"
           fi
 
-          echo "🚀 Pushing to GitHub with token auth..."
-          git remote remove origin || true
-          git remote add origin https://${{ secrets.GH_TOKEN }}@github.com/devatheboos/ai-auto-blog-frontend.git
+          echo "🧪 Creating .netrc file to force token use..."
+          cat <<EOF > ~/.netrc
+machine github.com
+login $GH_USER
+password $GH_TOKEN
+EOF
 
-          git push origin HEAD:main || {
+          echo "🧪 Setting remote URL..."
+          git remote remove origin || true
+          git remote add origin https://github.com/$GH_USER/$GH_REPO_NAME.git
+
+          echo "🚀 Pushing to GitHub using netrc token auth..."
+          GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push origin HEAD:main || {
             echo "❌ Git push failed"
             exit 1
           }
