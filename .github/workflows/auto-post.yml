@@ -50,9 +50,9 @@ jobs:
           echo "Final Repo URL:"
           echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
 
-      - name: ✅ Step 7 - Git Commit & Push (Final Fix)
+      - name: ✅ Step 7 - Git Commit & Push
         run: |
-          echo "🔐 Setting up Git..."
+          echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
 
@@ -66,14 +66,10 @@ jobs:
             git commit -m "🤖 New AI post: $(date)"
           fi
 
-          echo "🧪 Saving token-based push URL..."
-          echo "https://${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git" > push-url.txt
-          cat push-url.txt | sed 's/github.com/****.com/'
+          echo "🚀 Pushing to GitHub with token auth..."
+          git remote remove origin || true
+          git remote add origin https://${{ secrets.GH_TOKEN }}@github.com/devatheboos/ai-auto-blog-frontend.git
 
-          git remote set-url origin "$(cat push-url.txt)"
-          git remote -v
-
-          echo "🚀 Pushing to GitHub via token-only URL..."
           git push origin HEAD:main || {
             echo "❌ Git push failed"
             exit 1
