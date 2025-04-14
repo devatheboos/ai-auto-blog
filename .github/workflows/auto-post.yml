@@ -41,8 +41,8 @@ jobs:
           ls -lh content/posts || echo "⚠️ No posts"
           echo "🖼️ Images:"
           ls -lh content/images || echo "⚠️ No images"
-
-      - name: 🕵️ Debug: Reveal constructed repo URL
+          
+     - name: 🕵️ Debug:  repo URL
         run: |
           echo "GH_USER: '${GH_USER}'"
           echo "GH_REPO_NAME: '${GH_REPO_NAME}'"
