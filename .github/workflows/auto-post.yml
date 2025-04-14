@@ -43,7 +43,7 @@ jobs:
           echo "🖼 content/images/"
           ls -lh content/images || echo "⚠️ No images found"
 
-      - name: Step 6 - Git Commit & Push
+            - name: Step 6 - Git Commit & Push
         run: |
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
@@ -56,7 +56,8 @@ jobs:
             echo "🟡 No changes to commit"
           else
             git commit -m "🤖 New AI post: $(date)"
-            git push "$REPO_PUSH_URL" HEAD:main || {
+            git remote set-url origin "$REPO_PUSH_URL"
+            git push origin HEAD:main || {
               echo "❌ Git push failed"
               exit 1
             }
