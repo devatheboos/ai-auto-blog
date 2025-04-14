@@ -14,7 +14,6 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GIT_NAME: ${{ secrets.GIT_NAME }}
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
       GH_USER: ${{ secrets.GH_USER }}
       GH_REPO_NAME: ${{ secrets.GH_REPO_NAME }}
 
@@ -30,48 +29,33 @@ jobs:
       - name: Step 3 - Install Dependencies
         run: npm install
 
-      - name: Step 4 - Run Blog Generator
+      - name: Step 4 - Generate Blog Post
         run: |
-          echo "Running fetchAndGenerate.mjs..."
-          node scripts/fetchAndGenerate.mjs || {
-            echo "❌ Blog generation failed"
-            exit 1
-          }
+          echo "Running blog post generator..."
+          node scripts/fetchAndGenerate.mjs
 
-      - name: Step 5 - Show Files Created
+      - name: Step 5 - Show New Files
         run: |
-          echo "📂 content/posts/"
-          ls -lh content/posts || echo "⚠️ No posts found"
-          echo "🖼 content/images/"
-          ls -lh content/images || echo "⚠️ No images found"
-
-      - name: 🐛 Show Repo URL
-        run: |
-          echo "REPO_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GH_USER}/${GH_REPO_NAME}.git""
-
+          echo "📝 Posts:"
+          ls -lh content/posts || echo "No posts"
+          echo "🖼 Images:"
+          ls -lh content/images || echo "No images"
 
       - name: Step 6 - Git Commit & Push
         run: |
-          echo "🔐 Setting up Git and pushing changes..."
-
+          echo "🔐 Setting up Git..."
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
 
-          ls content/posts/*.md 2>/dev/null && git add content/posts/*.md || echo "⚠️ No markdown files"
-          ls content/images/*.png 2>/dev/null && git add content/images/*.png || echo "⚠️ No image files"
-          ls logs/*.log 2>/dev/null && git add logs/*.log || echo "⚠️ No log files"
+          git add content/posts/*.md 2>/dev/null || echo "No posts to add"
+          git add content/images/*.png 2>/dev/null || echo "No images to add"
 
           if git diff --cached --quiet; then
-            echo "🟡 No changes to commit"
+            echo "🟡 Nothing to commit"
           else
             git commit -m "🤖 New AI post: $(date)"
 
-            REPO_URL="https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
+            REPO_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ secrets.GH_USER }}/${{ secrets.GH_REPO_NAME }}.git"
             git remote set-url origin "$REPO_URL"
-            git remote -v
-
-            git push origin HEAD:main || {
-              echo "❌ Git push failed"
-              exit 1
-            }
+            git push origin HEAD:main
           fi
