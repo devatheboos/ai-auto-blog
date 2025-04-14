@@ -16,6 +16,7 @@ jobs:
       GIT_NAME: ${{ secrets.GIT_NAME }}
       GH_USER: ${{ secrets.GH_USER }}
       GH_REPO_NAME: ${{ secrets.GH_REPO_NAME }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
       - name: Step 1 - Checkout Repo
@@ -44,18 +45,21 @@ jobs:
       - name: Step 6 - Git Commit & Push
         run: |
           echo "🔐 Setting up Git..."
+
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
 
-          git add content/posts/*.md 2>/dev/null || echo "No posts to add"
-          git add content/images/*.png 2>/dev/null || echo "No images to add"
+          git add content/posts/*.md 2>/dev/null || echo "No markdown files"
+          git add content/images/*.png 2>/dev/null || echo "No images"
+          git add logs/*.log 2>/dev/null || echo "No logs"
 
           if git diff --cached --quiet; then
-            echo "🟡 Nothing to commit"
+            echo "🟡 No changes to commit"
           else
             git commit -m "🤖 New AI post: $(date)"
 
-            REPO_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ secrets.GH_USER }}/${{ secrets.GH_REPO_NAME }}.git"
+            REPO_URL="https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
             git remote set-url origin "$REPO_URL"
+            git remote -v
             git push origin HEAD:main
           fi
