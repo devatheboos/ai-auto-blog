@@ -14,6 +14,9 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GIT_NAME: ${{ secrets.GIT_NAME }}
+      GH_USER: devatheboos
+      GH_REPO_NAME: ai-auto-blog-frontend
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
       - name: ✅ Step 1 - Checkout Repo
