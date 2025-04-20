@@ -14,9 +14,6 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GIT_NAME: ${{ secrets.GIT_NAME }}
-      GH_USER: devatheboos
-      GH_REPO_NAME: ai-auto-blog-frontend
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
       - name: ✅ Step 1 - Checkout Repo
@@ -45,11 +42,9 @@ jobs:
           echo "🖼️ Images:"
           ls -lh content/images || echo "⚠️ No images"
 
-      - name: ✅ Step 6 - Git Commit & Push (using .netrc)
+      - name: ✅ Step 6 - Git Commit & Push to ai-auto-blog-frontend
         env:
-          GH_USER: devatheboos
-          GH_REPO: ai-auto-blog-frontend
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_PUSH_URL: https://${{ secrets.GH_TOKEN }}@github.com/devatheboos/ai-auto-blog-frontend.git
         run: |
           echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -65,18 +60,12 @@ jobs:
             git commit -m "🤖 New AI Post: $(date)"
           fi
 
-          echo "🧪 Creating .netrc file for GitHub token auth..."
-          cat <<EOF > ~/.netrc
-machine github.com
-login $GH_USER
-password $GH_TOKEN
-EOF
-
-          echo "🔁 Setting origin and pushing to GitHub..."
+          echo "🚀 Setting remote origin to token-based URL..."
           git remote remove origin || true
-          git remote add origin https://github.com/$GH_USER/$GH_REPO.git
+          git remote add origin "$GH_PUSH_URL"
 
-          GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push origin HEAD:main || {
+          echo "🔁 Pushing to GitHub..."
+          git push origin HEAD:main || {
             echo "❌ Git push failed"
             exit 1
           }
