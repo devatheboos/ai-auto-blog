@@ -1,84 +1,26 @@
-name: ✅ Auto Blog Post Generator
+name: Auto Post Blog from RSS
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: '0 9 * * *' # Runs daily at 09:00 UTC
+  workflow_dispatch: # allows manual trigger
 
 jobs:
-  generate-blog:
-    name: Generate AI Blog
+  auto-post:
     runs-on: ubuntu-latest
-
-    env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
-      GIT_NAME: ${{ secrets.GIT_NAME }}
-      GH_USER: devatheboos
-      GH_REPO_NAME: ai-auto-blog-frontend
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
     steps:
-      - name: ✅ Step 1 - Checkout Repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: ✅ Step 2 - Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          node-version: 18
+          python-version: '3.10'
 
-      - name: ✅ Step 3 - Install Dependencies
-        run: npm install
+      - name: Install dependencies
+        run: pip install openai feedparser requests
 
-      - name: ✅ Step 4 - Generate Blog Post
-        run: |
-          echo "🧠 Running blog post generator..."
-          node scripts/fetchAndGenerate.mjs
-
-      - name: ✅ Step 5 - Show New Files
-        run: |
-          echo "📝 Markdown files:"
-          ls -lh content/posts || echo "⚠️ No posts"
-          echo "🖼️ Images:"
-          ls -lh content/images || echo "⚠️ No images"
-
-      - name: 🕵️ Step 6 - Debug Repo URL
-        run: |
-          echo "GH_USER: ${GH_USER}"
-          echo "GH_REPO_NAME: ${GH_REPO_NAME}"
-          echo "GH_TOKEN length: ${#GH_TOKEN}"
-          echo "Final Repo URL:"
-          echo "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO_NAME}.git"
-
-      - name: ✅ Step 7 - Git Commit & Push (manual auth fix)
-        run: |
-          echo "🔐 Configuring Git..."
-          git config --global user.email "$GIT_EMAIL"
-          git config --global user.name "$GIT_NAME"
-
-          git add content/posts/*.md 2>/dev/null || echo "⚠️ No markdown files"
-          git add content/images/*.png 2>/dev/null || echo "⚠️ No image files"
-          git add logs/*.log 2>/dev/null || echo "⚠️ No logs"
-
-          if git diff --cached --quiet; then
-            echo "🟡 Nothing to commit"
-          else
-            git commit -m "🤖 New AI post: $(date)"
-          fi
-
-          echo "🧪 Creating .netrc file to force token use..."
-          cat <<EOF > ~/.netrc
-machine github.com
-login ${GH_USER}
-password ${GH_TOKEN}
-EOF
-
-          echo "🧪 Setting remote URL..."
-          git remote remove origin || true
-          git remote add origin https://github.com/${GH_USER}/${GH_REPO_NAME}.git
-
-          echo "🚀 Pushing to GitHub using netrc token auth..."
-          GIT_TRACE=1 GIT_CURL_VERBOSE=1 git push origin HEAD:main || {
-            echo "❌ Git push failed"
-            exit 1
-          }
+      - name: Run the blog post generator
+        run: python your_script_name.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
