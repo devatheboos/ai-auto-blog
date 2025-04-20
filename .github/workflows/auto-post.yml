@@ -2,19 +2,24 @@ name: ✅ Auto Blog Post Generator
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"  # Runs every 30 minutes
 
 jobs:
   generate-blog:
+    name: Generate AI Blog
     runs-on: ubuntu-latest
 
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GIT_NAME: ${{ secrets.GIT_NAME }}
+      GH_USER: devatheboos
+      GH_REPO_NAME: ai-auto-blog-frontend
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
-      - name: ✅ Step 1 - Checkout Repository
+      - name: ✅ Step 1 - Checkout Repo
         uses: actions/checkout@v3
 
       - name: ✅ Step 2 - Setup Node.js
@@ -25,22 +30,22 @@ jobs:
       - name: ✅ Step 3 - Install Dependencies
         run: npm install
 
-      - name: ✅ Step 4 - Run Blog Generator
+      - name: ✅ Step 4 - Generate Blog Post
         run: |
-          echo "Running script..."
+          echo "🧠 Running blog post generator..."
           node scripts/fetchAndGenerate.mjs || {
-            echo "❌ Script failed"
+            echo "❌ Blog generation failed"
             exit 1
           }
 
-      - name: ✅ Step 5 - List Generated Content
+      - name: ✅ Step 5 - Show New Files
         run: |
-          echo "📝 Posts:"
-          ls -lh content/posts || echo "⚠️ No posts folder"
-          echo "🖼 Images:"
-          ls -lh content/images || echo "⚠️ No images folder"
+          echo "📝 Markdown files:"
+          ls -lh content/posts || echo "⚠️ No posts"
+          echo "🖼️ Images:"
+          ls -lh content/images || echo "⚠️ No images"
 
-      - name: ✅ Step 6 - Commit and Push to GitHub
+      - name: ✅ Step 6 - Commit & Push to GitHub
         run: |
           echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -48,6 +53,7 @@ jobs:
 
           git add content/posts/*.md 2>/dev/null || echo "⚠️ No markdown files"
           git add content/images/*.png 2>/dev/null || echo "⚠️ No image files"
+          git add logs/*.log 2>/dev/null || echo "⚠️ No logs"
 
           if git diff --cached --quiet; then
             echo "🟡 Nothing to commit"
@@ -55,6 +61,14 @@ jobs:
             git commit -m "🤖 New AI Post: $(date)"
           fi
 
-          echo "machine github.com\nlogin github-actions\npassword $GH_TOKEN" > ~/.netrc
-          git remote set-url origin https://github.com/${{ github.repository }}.git
-          git push origin HEAD:main || echo "❌ Git push failed"
+          echo "🧪 Creating .netrc file to authenticate..."
+          echo "machine github.com" > ~/.netrc
+          echo "login $GH_USER" >> ~/.netrc
+          echo "password $GH_TOKEN" >> ~/.netrc
+
+          echo "🚀 Pushing to GitHub..."
+          git remote set-url origin https://github.com/${GH_USER}/${GH_REPO_NAME}.git
+          git push origin HEAD:main || {
+            echo "❌ Git push failed"
+            exit 1
+          }
