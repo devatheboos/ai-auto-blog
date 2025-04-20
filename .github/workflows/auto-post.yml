@@ -2,12 +2,9 @@ name: ✅ Auto Blog Post Generator
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "*/30 * * * *"  # Every 30 minutes
 
 jobs:
   generate-blog:
-    name: 🚀 Generate AI Blog
     runs-on: ubuntu-latest
 
     env:
@@ -28,17 +25,20 @@ jobs:
       - name: ✅ Step 3 - Install Dependencies
         run: npm install
 
-      - name: ✅ Step 4 - Run Blog Post Generator
+      - name: ✅ Step 4 - Run Blog Generator
         run: |
-          echo "🧠 Running blog post generator..."
-          node scripts/fetchAndGenerate.mjs
+          echo "Running script..."
+          node scripts/fetchAndGenerate.mjs || {
+            echo "❌ Script failed"
+            exit 1
+          }
 
-      - name: ✅ Step 5 - Show New Files
+      - name: ✅ Step 5 - List Generated Content
         run: |
-          echo "📂 Posts:"
-          ls -lh content/posts || echo "⚠️ No posts"
+          echo "📝 Posts:"
+          ls -lh content/posts || echo "⚠️ No posts folder"
           echo "🖼 Images:"
-          ls -lh content/images || echo "⚠️ No images"
+          ls -lh content/images || echo "⚠️ No images folder"
 
       - name: ✅ Step 6 - Commit and Push to GitHub
         run: |
@@ -47,25 +47,14 @@ jobs:
           git config --global user.name "$GIT_NAME"
 
           git add content/posts/*.md 2>/dev/null || echo "⚠️ No markdown files"
-          git add content/images/*.png 2>/dev/null || echo "⚠️ No images"
-          git add logs/*.log 2>/dev/null || echo "⚠️ No logs"
+          git add content/images/*.png 2>/dev/null || echo "⚠️ No image files"
 
           if git diff --cached --quiet; then
-            echo "🟡 No changes to commit"
+            echo "🟡 Nothing to commit"
           else
-            git commit -m "🤖 New AI post: $(date)"
+            git commit -m "🤖 New AI Post: $(date)"
           fi
 
-          echo "🧪 Authenticating with GitHub via PAT..."
-          cat <<EOF > ~/.netrc
-machine github.com
-login github-actions
-password $GH_TOKEN
-EOF
-
-          echo "🚀 Pushing to origin..."
+          echo "machine github.com\nlogin github-actions\npassword $GH_TOKEN" > ~/.netrc
           git remote set-url origin https://github.com/${{ github.repository }}.git
-          git push origin HEAD:main || {
-            echo "❌ Git push failed"
-            exit 1
-          }
+          git push origin HEAD:main || echo "❌ Git push failed"
