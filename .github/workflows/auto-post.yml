@@ -3,7 +3,7 @@ name: ✅ Auto Blog Post Generator
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"  # Runs every 30 minutes
+    - cron: "*/30 * * * *"
 
 jobs:
   generate-blog:
@@ -14,8 +14,6 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GIT_NAME: ${{ secrets.GIT_NAME }}
-      GH_USER: devatheboos
-      GH_REPO_NAME: ai-auto-blog-frontend
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
@@ -45,9 +43,7 @@ jobs:
           echo "🖼️ Images:"
           ls -lh content/images || echo "⚠️ No images"
 
-      - name: ✅ Step 6 - Git Commit & Push to ai-auto-blog-frontend
-        env:
-          GH_PUSH_URL: https://${{ secrets.GH_TOKEN }}@github.com/devatheboos/ai-auto-blog-frontend.git
+      - name: ✅ Step 6 - Git Commit & Push using PAT
         run: |
           echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -63,11 +59,8 @@ jobs:
             git commit -m "🤖 New AI Post: $(date)"
           fi
 
-          echo "🚀 Setting remote origin to token-based URL..."
-          git remote remove origin || true
-          git remote add origin "$GH_PUSH_URL"
-
-          echo "🔁 Pushing to GitHub..."
+          echo "🚀 Pushing to GitHub using PAT..."
+          git remote set-url origin https://${GH_TOKEN}@github.com/devatheboos/ai-auto-blog-frontend.git
           git push origin HEAD:main || {
             echo "❌ Git push failed"
             exit 1
