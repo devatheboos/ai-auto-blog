@@ -3,7 +3,7 @@ name: ✅ Auto Blog Post Generator
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"  # Every 30 minutes
+    - cron: "*/30 * * * *"  # Runs every 30 minutes
 
 jobs:
   generate-blog:
@@ -14,6 +14,8 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GIT_NAME: ${{ secrets.GIT_NAME }}
+      GH_USER: devatheboos
+      GH_REPO_NAME: ai-auto-blog-frontend
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
@@ -31,16 +33,21 @@ jobs:
       - name: ✅ Step 4 - Generate Blog Post
         run: |
           echo "🧠 Running blog post generator..."
-          node scripts/fetchAndGenerate.mjs
+          node scripts/fetchAndGenerate.mjs || {
+            echo "❌ Blog generation failed"
+            exit 1
+          }
 
-      - name: ✅ Step 5 - Show Generated Files
+      - name: ✅ Step 5 - Show New Files
         run: |
-          echo "📝 Posts:"
+          echo "📝 Markdown files:"
           ls -lh content/posts || echo "⚠️ No posts"
-          echo "🖼 Images:"
+          echo "🖼️ Images:"
           ls -lh content/images || echo "⚠️ No images"
 
-      - name: ✅ Step 6 - Git Commit & Push
+      - name: ✅ Step 6 - Git Commit & Push to ai-auto-blog-frontend
+        env:
+          GH_PUSH_URL: https://${{ secrets.GH_TOKEN }}@github.com/devatheboos/ai-auto-blog-frontend.git
         run: |
           echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
@@ -56,16 +63,11 @@ jobs:
             git commit -m "🤖 New AI Post: $(date)"
           fi
 
-          echo "🧪 Creating .netrc for token-based authentication..."
-          cat <<EOF > ~/.netrc
-machine github.com
-login devatheboos
-password $GH_TOKEN
-EOF
-
-          echo "🚀 Pushing to GitHub..."
+          echo "🚀 Setting remote origin to token-based URL..."
           git remote remove origin || true
-          git remote add origin https://github.com/devatheboos/ai-auto-blog-frontend.git
+          git remote add origin "$GH_PUSH_URL"
+
+          echo "🔁 Pushing to GitHub..."
           git push origin HEAD:main || {
             echo "❌ Git push failed"
             exit 1
