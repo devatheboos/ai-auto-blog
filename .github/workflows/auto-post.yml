@@ -7,7 +7,7 @@ on:
 
 jobs:
   generate-blog:
-    name: Generate AI Blog
+    name: 🚀 Generate AI Blog
     runs-on: ubuntu-latest
 
     env:
@@ -17,7 +17,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
-      - name: ✅ Step 1 - Checkout Repo
+      - name: ✅ Step 1 - Checkout Repository
         uses: actions/checkout@v3
 
       - name: ✅ Step 2 - Setup Node.js
@@ -28,42 +28,42 @@ jobs:
       - name: ✅ Step 3 - Install Dependencies
         run: npm install
 
-      - name: ✅ Step 4 - Generate Blog Post
+      - name: ✅ Step 4 - Run Blog Post Generator
         run: |
           echo "🧠 Running blog post generator..."
           node scripts/fetchAndGenerate.mjs
 
-      - name: ✅ Step 5 - Show Generated Files
+      - name: ✅ Step 5 - Show New Files
         run: |
-          echo "📝 Markdown Files:"
-          ls -lh content/posts || echo "⚠️ No posts found"
-          echo "🖼️ Image Files:"
-          ls -lh content/images || echo "⚠️ No images found"
+          echo "📂 Posts:"
+          ls -lh content/posts || echo "⚠️ No posts"
+          echo "🖼 Images:"
+          ls -lh content/images || echo "⚠️ No images"
 
-      - name: ✅ Step 6 - Git Commit & Push with PAT
+      - name: ✅ Step 6 - Commit and Push to GitHub
         run: |
           echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
 
           git add content/posts/*.md 2>/dev/null || echo "⚠️ No markdown files"
-          git add content/images/*.png 2>/dev/null || echo "⚠️ No image files"
-          git add logs/*.log 2>/dev/null || echo "⚠️ No log files"
+          git add content/images/*.png 2>/dev/null || echo "⚠️ No images"
+          git add logs/*.log 2>/dev/null || echo "⚠️ No logs"
 
           if git diff --cached --quiet; then
-            echo "🟡 Nothing to commit"
+            echo "🟡 No changes to commit"
           else
             git commit -m "🤖 New AI post: $(date)"
           fi
 
-          echo "🧪 Writing token-based netrc file..."
+          echo "🧪 Authenticating with GitHub via PAT..."
           cat <<EOF > ~/.netrc
 machine github.com
 login github-actions
 password $GH_TOKEN
 EOF
 
-          echo "🚀 Pushing to GitHub..."
+          echo "🚀 Pushing to origin..."
           git remote set-url origin https://github.com/${{ github.repository }}.git
           git push origin HEAD:main || {
             echo "❌ Git push failed"
