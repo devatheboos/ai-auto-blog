@@ -14,46 +14,51 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
       GIT_NAME: ${{ secrets.GIT_NAME }}
+      GH_USER: devatheboos
+      GH_REPO_NAME: ai-auto-blog-frontend
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
-      - name: ✅ Step 1 - Checkout Repo
-        uses: actions/checkout@v3
+      - name: Step 1 - Checkout Repo
+        run: |
+          echo "Cloning repository..."
+          git clone https://github.com/${GH_USER}/${GH_REPO_NAME}.git
+          cd ${GH_REPO_NAME}
+          
+      - name: Step 2 - Install Node.js manually
+        run: |
+          echo "Installing Node.js..."
+          curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+          sudo apt-get install -y nodejs
+          node -v  # Verify installation
 
-      - name: ✅ Step 2 - Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: ✅ Step 3 - Install Dependencies
+      - name: Step 3 - Install Dependencies
         run: npm install
 
-      - name: ✅ Step 4 - Generate Blog Post
+      - name: Step 4 - Generate Blog Post
         run: |
           echo "🧠 Running blog post generator..."
-          node scripts/fetchAndGenerate.mjs || {
-            echo "❌ Blog generation failed"
-            exit 1
-          }
+          node scripts/fetchAndGenerate.mjs
 
-      - name: ✅ Step 5 - Show New Files
+      - name: Step 5 - Show New Files
         run: |
           echo "📝 Markdown files:"
           ls -lh content/posts || echo "⚠️ No posts"
           echo "🖼️ Images:"
           ls -lh content/images || echo "⚠️ No images"
 
-      - name: ✅ Step 6 - Git Commit & Push to ai-auto-blog-frontend
+      - name: Step 6 - Git Commit & Push to ai-auto-blog-frontend
         env:
           GH_PUSH_URL: https://${{ secrets.GH_TOKEN }}@github.com/devatheboos/ai-auto-blog-frontend.git
         run: |
           echo "🔐 Configuring Git..."
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_NAME"
-
+          
           git add content/posts/*.md 2>/dev/null || echo "⚠️ No markdown files"
           git add content/images/*.png 2>/dev/null || echo "⚠️ No image files"
           git add logs/*.log 2>/dev/null || echo "⚠️ No logs"
-
+          
           if git diff --cached --quiet; then
             echo "🟡 Nothing to commit"
           else
